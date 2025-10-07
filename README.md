@@ -1,10 +1,10 @@
-# 🛒 Dunnhumby Retail Analytics Dashboard
+# 🛒 Retail Analytics Dashboard
 
 **Data Analyst Portfolio Project** - Consumer Goods Retail Analytics
 
 ## 📋 Project Overview
 
-This project is a comprehensive retail analytics dashboard built using Dunnhumby's synthetic consumer goods company data as a Data Analyst portfolio project.
+This project is a comprehensive retail analytics dashboard built using synthetic consumer goods company data as a Data Analyst portfolio project.
 
 ## 🎯 Key Features
 
@@ -154,4 +154,4 @@ Feedback and improvement suggestions for this project are always welcome!
 
 ---
 
-**Built with ❤️ for Data Analytics Portfolio**
+**Built for Data Analytics Portfolio**
