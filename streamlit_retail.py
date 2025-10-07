@@ -8,6 +8,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 import warnings
+import os
 warnings.filterwarnings('ignore')
 
 # ---------- Utility Functions ----------
@@ -15,14 +16,52 @@ warnings.filterwarnings('ignore')
 def load_data():
     """Load and preprocess data"""
     try:
-        # Load data
-        transaction_df = pd.read_csv('transaction_data.csv')
-        demographic_df = pd.read_csv('hh_demographic.csv')
-        product_df = pd.read_csv('product.csv')
-        campaign_table_df = pd.read_csv('campaign_table.csv')
-        campaign_desc_df = pd.read_csv('campaign_desc.csv')
-        coupon_redempt_df = pd.read_csv('coupon_redempt.csv')
-        coupon_df = pd.read_csv('coupon.csv')
+        # Check if files exist first
+        required_files = [
+            'transaction_data.csv',
+            'hh_demographic.csv', 
+            'product.csv',
+            'campaign_table.csv',
+            'campaign_desc.csv',
+            'coupon_redempt.csv',
+            'coupon.csv'
+        ]
+        
+        st.info("Checking if all required files exist...")
+        missing_files = []
+        for file in required_files:
+            if not os.path.exists(file):
+                missing_files.append(file)
+        
+        if missing_files:
+            st.error(f"Missing files: {', '.join(missing_files)}")
+            st.info("Please ensure all CSV files are in the same directory as the Streamlit app.")
+            return None, None, None, None, None
+        
+        st.success("All required files found!")
+        
+        # Load data with error handling for each file
+        st.info("Loading transaction data...")
+        transaction_df = pd.read_csv('transaction_data.csv', encoding='utf-8')
+        st.info(f"Transaction data loaded: {transaction_df.shape}")
+        
+        st.info("Loading demographic data...")
+        demographic_df = pd.read_csv('hh_demographic.csv', encoding='utf-8')
+        
+        st.info("Loading product data...")
+        product_df = pd.read_csv('product.csv', encoding='utf-8')
+        
+        st.info("Loading campaign table data...")
+        campaign_table_df = pd.read_csv('campaign_table.csv', encoding='utf-8')
+        
+        st.info("Loading campaign description data...")
+        campaign_desc_df = pd.read_csv('campaign_desc.csv', encoding='utf-8')
+        
+        st.info("Loading coupon redemption data...")
+        coupon_redempt_df = pd.read_csv('coupon_redempt.csv', encoding='utf-8')
+        
+        st.info("Loading coupon data...")
+        coupon_df = pd.read_csv('coupon.csv', encoding='utf-8')
         
         # Date conversion (relative dates based on 2022-01-01)
         transaction_df['DATE'] = pd.to_datetime('2022-01-01') + pd.to_timedelta(transaction_df['DAY'] - 1, unit='D')
@@ -50,9 +89,29 @@ def load_data():
         st.error(f"Data file not found: {str(e)}")
         st.info("Please ensure all CSV files are in the same directory as the Streamlit app.")
         return None, None, None, None, None
+    except pd.errors.EmptyDataError as e:
+        st.error(f"Empty data file detected: {str(e)}")
+        st.info("The CSV file appears to be empty or corrupted.")
+        return None, None, None, None, None
+    except pd.errors.ParserError as e:
+        st.error(f"CSV parsing error: {str(e)}")
+        st.info("The CSV file format may be incorrect or corrupted.")
+        return None, None, None, None, None
+    except UnicodeDecodeError as e:
+        st.error(f"File encoding error: {str(e)}")
+        st.info("The file encoding is not supported. Trying with different encoding...")
+        try:
+            # Try with different encodings
+            transaction_df = pd.read_csv('transaction_data.csv', encoding='latin-1')
+            st.success("Successfully loaded with latin-1 encoding!")
+            # Continue with other files...
+        except Exception as e2:
+            st.error(f"Still unable to load file: {str(e2)}")
+            return None, None, None, None, None
     except Exception as e:
         st.error(f"Error occurred while loading data: {str(e)}")
         st.info("Please check the data files and try again.")
+        st.code(f"Error details: {type(e).__name__}: {str(e)}")
         return None, None, None, None, None
 
 def kpi_card(label: str, value, help_txt: str = ""):
