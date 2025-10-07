@@ -12,7 +12,6 @@ import os
 warnings.filterwarnings('ignore')
 
 # ---------- Utility Functions ----------
-@st.cache_data(show_spinner=False)
 def load_data():
     """Load and preprocess data"""
     try:
@@ -51,13 +50,16 @@ def load_data():
             st.warning(f"Could not get file size: {e}")
         
         # Try different approaches to load the CSV with comprehensive error handling
+        # Load only a sample to reduce memory usage for Streamlit Cloud
         transaction_df = None
         for encoding in ['utf-8', 'latin-1', 'cp1252']:
             try:
                 st.info(f"Trying to load with {encoding} encoding...")
-                transaction_df = pd.read_csv('transaction_data.csv', encoding=encoding)
+                # Load only first 100,000 rows to reduce memory usage
+                transaction_df = pd.read_csv('transaction_data.csv', encoding=encoding, nrows=100000)
                 st.success(f"Transaction data loaded successfully with {encoding}: {transaction_df.shape}")
                 st.info(f"Columns: {list(transaction_df.columns)}")
+                st.info("Note: Using sample data (100K rows) for better performance")
                 break
             except pd.errors.EmptyDataError as e:
                 st.error(f"EmptyDataError with {encoding}: File appears to be empty")
