@@ -16,7 +16,7 @@ def load_data():
     """Load and preprocess data"""
     try:
         # Load data
-        transaction_df = pd.read_csv('transaction_data_cleaned.csv')
+        transaction_df = pd.read_csv('transaction_data.csv')
         demographic_df = pd.read_csv('hh_demographic.csv')
         product_df = pd.read_csv('product.csv')
         campaign_table_df = pd.read_csv('campaign_table.csv')
