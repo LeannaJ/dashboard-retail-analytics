@@ -43,57 +43,87 @@ def load_data():
         # Load data with error handling for each file
         st.info("Loading transaction data...")
         
-        # Debug: Check file size and first few bytes
-        file_size = os.path.getsize('transaction_data.csv')
-        st.info(f"File size: {file_size} bytes")
-        
-        # Try to read first few lines to debug
+        # Debug: Check file size safely
         try:
-            with open('transaction_data.csv', 'r', encoding='utf-8') as f:
-                first_line = f.readline().strip()
-                st.info(f"First line: {first_line[:100]}...")
+            file_size = os.path.getsize('transaction_data.csv')
+            st.info(f"File size: {file_size} bytes")
         except Exception as e:
-            st.warning(f"Could not read first line: {e}")
+            st.warning(f"Could not get file size: {e}")
         
-        # Try different approaches to load the CSV
-        try:
-            transaction_df = pd.read_csv('transaction_data.csv', encoding='utf-8')
-            st.info(f"Transaction data loaded successfully: {transaction_df.shape}")
-            st.info(f"Columns: {list(transaction_df.columns)}")
-        except pd.errors.EmptyDataError:
-            st.error("EmptyDataError: File appears to be empty")
-            # Try with different parameters
+        # Try different approaches to load the CSV with comprehensive error handling
+        transaction_df = None
+        for encoding in ['utf-8', 'latin-1', 'cp1252']:
             try:
-                st.info("Trying with different parameters...")
-                transaction_df = pd.read_csv('transaction_data.csv', encoding='utf-8', sep=',', skipinitialspace=True)
-                st.success(f"Success with different params: {transaction_df.shape}")
-            except Exception as e2:
-                st.error(f"Still failed: {e2}")
-                raise
+                st.info(f"Trying to load with {encoding} encoding...")
+                transaction_df = pd.read_csv('transaction_data.csv', encoding=encoding)
+                st.success(f"Transaction data loaded successfully with {encoding}: {transaction_df.shape}")
+                st.info(f"Columns: {list(transaction_df.columns)}")
+                break
+            except pd.errors.EmptyDataError as e:
+                st.error(f"EmptyDataError with {encoding}: File appears to be empty")
+                continue
+            except pd.errors.ParserError as e:
+                st.warning(f"ParserError with {encoding}: {str(e)}")
+                continue
+            except UnicodeDecodeError as e:
+                st.warning(f"UnicodeDecodeError with {encoding}: {str(e)}")
+                continue
+            except Exception as e:
+                st.warning(f"Other error with {encoding}: {str(e)}")
+                continue
         
-        st.info("Loading demographic data...")
-        demographic_df = pd.read_csv('hh_demographic.csv', encoding='utf-8')
-        st.info(f"Demographic data loaded: {demographic_df.shape}")
+        if transaction_df is None:
+            st.error("Failed to load transaction data with any encoding")
+            return None, None, None, None, None
         
-        st.info("Loading product data...")
-        product_df = pd.read_csv('product.csv', encoding='utf-8')
-        st.info(f"Product data loaded: {product_df.shape}")
-        
-        st.info("Loading campaign table data...")
-        campaign_table_df = pd.read_csv('campaign_table.csv', encoding='utf-8')
-        st.info(f"Campaign table data loaded: {campaign_table_df.shape}")
-        
-        st.info("Loading campaign description data...")
-        campaign_desc_df = pd.read_csv('campaign_desc.csv', encoding='utf-8')
-        st.info(f"Campaign description data loaded: {campaign_desc_df.shape}")
-        
-        st.info("Loading coupon redemption data...")
-        coupon_redempt_df = pd.read_csv('coupon_redempt.csv', encoding='utf-8')
-        st.info(f"Coupon redemption data loaded: {coupon_redempt_df.shape}")
-        
-        st.info("Loading coupon data...")
-        coupon_df = pd.read_csv('coupon.csv', encoding='utf-8')
-        st.info(f"Coupon data loaded: {coupon_df.shape}")
+        # Load other files with safe error handling
+        try:
+            st.info("Loading demographic data...")
+            demographic_df = pd.read_csv('hh_demographic.csv', encoding='utf-8')
+            st.info(f"Demographic data loaded: {demographic_df.shape}")
+        except Exception as e:
+            st.error(f"Failed to load demographic data: {e}")
+            return None, None, None, None, None
+            
+        try:
+            st.info("Loading product data...")
+            product_df = pd.read_csv('product.csv', encoding='utf-8')
+            st.info(f"Product data loaded: {product_df.shape}")
+        except Exception as e:
+            st.error(f"Failed to load product data: {e}")
+            return None, None, None, None, None
+            
+        try:
+            st.info("Loading campaign table data...")
+            campaign_table_df = pd.read_csv('campaign_table.csv', encoding='utf-8')
+            st.info(f"Campaign table data loaded: {campaign_table_df.shape}")
+        except Exception as e:
+            st.error(f"Failed to load campaign table data: {e}")
+            return None, None, None, None, None
+            
+        try:
+            st.info("Loading campaign description data...")
+            campaign_desc_df = pd.read_csv('campaign_desc.csv', encoding='utf-8')
+            st.info(f"Campaign description data loaded: {campaign_desc_df.shape}")
+        except Exception as e:
+            st.error(f"Failed to load campaign description data: {e}")
+            return None, None, None, None, None
+            
+        try:
+            st.info("Loading coupon redemption data...")
+            coupon_redempt_df = pd.read_csv('coupon_redempt.csv', encoding='utf-8')
+            st.info(f"Coupon redemption data loaded: {coupon_redempt_df.shape}")
+        except Exception as e:
+            st.error(f"Failed to load coupon redemption data: {e}")
+            return None, None, None, None, None
+            
+        try:
+            st.info("Loading coupon data...")
+            coupon_df = pd.read_csv('coupon.csv', encoding='utf-8')
+            st.info(f"Coupon data loaded: {coupon_df.shape}")
+        except Exception as e:
+            st.error(f"Failed to load coupon data: {e}")
+            return None, None, None, None, None
         
         # Date conversion (relative dates based on 2022-01-01)
         transaction_df['DATE'] = pd.to_datetime('2022-01-01') + pd.to_timedelta(transaction_df['DAY'] - 1, unit='D')
